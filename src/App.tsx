@@ -1,95 +1,69 @@
-import React, { useState } from "react";
-import { SafeAreaView, StatusBar, StyleSheet, View } from "react-native";
+import React from "react";
+import { NavigationContainer, useNavigation } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { Provider as PaperProvider } from "react-native-paper";
+import { AccountScreen } from "./screens/account";
+import { EditorScreen } from "./screens/editor";
+import { ScenariosScreen } from "./screens/scenarios";
+import { SettingsScreen } from "./screens/settings";
+import Tabbar from "@mindinventory/react-native-tab-bar-interaction";
+import { Text } from "react-native";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { IconButton } from "react-native-paper";
-import CharacterModal from "./components/CharacterModal";
-import CharactersRooster from "./components/CharactersRooster";
-import { MessageInput } from "./components/MessageInput";
-import { MessagesDisplay } from "./components/MessagesDisplay";
 
-export type MessageType = "dialogue" | "action" | "narration";
+enum ScreenName {
+  Account = "Account",
+  Editor = "Editor",
+  Scenarios = "Scenarios",
+  Settings = "Settings"
+}
 
-export type Actor = {
-  // id: number;
-  name: string;
-  actorContext: MessageType;
-  color: string;
-};
+const Stack = createBottomTabNavigator();
+const tabs = [
+  {
+    name: ScreenName.Account,
+    activeIcon: <IconButton icon={"account"} />,
+    inactiveIcon: <IconButton icon={"account"} />
+  },
+  {
+    name: ScreenName.Editor,
+    activeIcon: <IconButton icon={"message-draw"} />,
+    inactiveIcon: <IconButton icon={"message-draw"} />
+  }, {
+    name: ScreenName.Scenarios,
+    activeIcon: <IconButton icon={"folder-multiple"} />,
+    inactiveIcon: <IconButton icon={"folder-multiple"} />
+  }, {
+    name: ScreenName.Settings,
+    activeIcon: <IconButton icon={"cog"} />,
+    inactiveIcon: <IconButton icon={"cog"} />
+  }
+];
 
-export type Message = {
-  // id: number;
-  type: MessageType;
-  content: string;
-  owner: Actor;
-};
 
-const App = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [modalVisible, setModalVisible] = useState<boolean>(false);
-  const [actors, setActors] = useState<Actor[]>([]);
-
-  const [selectedActor, setSelectedActor] = useState<Actor | undefined>(
-    undefined
-  );
-
+export const App = () => {
+  // const x = useNavigation();
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle={"dark-content"} />
-      <CharacterModal
-        onDismiss={() => setModalVisible(false)}
-        visible={modalVisible}
-        onAdd={(owner: Actor) => setActors([...actors, owner])}
-      />
-      <MessagesDisplay messages={messages} />
-      <View style={{ flexDirection: "row" }}>
-        <IconButton
-          style={{
-            width: 60,
-            height: 60,
-            backgroundColor: "yellow",
-            borderRadius: 5,
+    <NavigationContainer>
+      <PaperProvider>
+        <Stack.Navigator sceneContainerStyle={{ paddingBottom: 90, backgroundColor: "white" }} initialRouteName={ScreenName.Scenarios} safeAreaInsets={{ top: 200 }} tabBar={(props) => <Tabbar
+          defaultActiveTabIndex={2}
+          tabs={tabs}
+          tabBarContainerBackground='#6699ff'
+          tabBarBackground='#fff'
+          transitionSpeed={100}
+          activeTabBackground='#6699ff'
+          onTabChange={({ name }) => {
+            props.navigation.navigate(name)
           }}
-          icon="exclamation"
-          onPress={() =>
-            selectedActor?.actorContext === "action"
-              ? setSelectedActor(undefined)
-              : setSelectedActor({
-                  actorContext: "action",
-                  color: "yellow",
-                  name: "Action",
-                })
-          }
-        />
-        <IconButton
-          style={{
-            width: 60,
-            height: 60,
-            backgroundColor: "teal",
-            borderRadius: 5,
-          }}
-          icon="plus"
-          onPress={() => setModalVisible(true)}
-        />
-        <CharactersRooster actors={actors} selectActor={setSelectedActor} />
-      </View>
-      <MessageInput
-        selectedActor={selectedActor}
-        onSend={(newMessage) =>
-          setMessages([
-            ...messages,
-            {
-              type: selectedActor!.actorContext,
-              owner: selectedActor!,
-              content: newMessage,
-            },
-          ])
-        }
-      />
-    </SafeAreaView>
+        />} >
+          <Stack.Screen name={ScreenName.Account} component={AccountScreen} />
+          <Stack.Screen name={ScreenName.Editor} component={EditorScreen} />
+          <Stack.Screen name={ScreenName.Scenarios} component={ScenariosScreen} />
+          <Stack.Screen name={ScreenName.Settings} component={SettingsScreen} />
+
+        </Stack.Navigator>
+      </PaperProvider>
+    </NavigationContainer>
   );
-};
-
-const styles = StyleSheet.create({
-  container: { height: "100%" },
-});
-
-export default App;
+}
